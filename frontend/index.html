@@ -613,7 +613,8 @@
                     improvementWrapper.style.display = "block";
                     if (improvementDaysEl) {
                         // use the raw string from JSON
-                        improvementDaysEl.textContent = estDays ? estDays : "–";
+                        improvementDaysEl.textContent = estDays ? `${estDays} Days` : "–";
+
                     }
                     if (improvementRationaleEl) {
                         improvementRationaleEl.textContent = rationale || "No improvement rationale available.";
