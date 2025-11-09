@@ -20,7 +20,12 @@ PerfectHealth bridges the gap — turning your sleep and recovery data into clea
 1. **Data Collection:** A WHOOP-like dataset (stored in S3) with metrics like sleep, HRV, and recovery.
 2. **AI Analysis:** AWS Lambda loads the data and queries Bedrock (Claude Sonnet 4.5) for AI-generated health insights.
 3. **Visualization:** The frontend dashboard (HTML/CSS/JS) fetches the live insights through API Gateway and displays them beautifully.
-4. **Optional Extensions:** Trendlines and historical comparisons (sleep efficiency, strain, temperature) can be toggled for deeper analysis.
+
+---
+
+### ⚠️ Note  
+The current version uses **static sample data** and allows manual date selection to preview how the analysis would appear.  
+In the full version, data from fitness trackers would be automatically updated each morning — running the AI analysis right after wake-up to deliver real-time recovery insights and personalized recommendations.
 
 ---
 
