@@ -42,4 +42,8 @@ Clone the repo:
 ```bash
 git clone https://github.com/vedantajwani/PerfectHealth.git
 cd PerfectHealth/frontend
-open index.html locally
+```
+
+Then open `index.html` in your browser to view the dashboard.
+
+
