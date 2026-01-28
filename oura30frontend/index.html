@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PerfectHealth.ai</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #050816;
+      --bg-card: #0f172a;
+      --bg-card-soft: #020617;
+      --accent: #38bdf8;
+      --accent-soft: rgba(56, 189, 248, 0.15);
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --danger: #f97373;
+      --radius-lg: 18px;
+      --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.85);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #0f172a 0, #020617 50%, #000 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 32px 16px;
+    }
+    .app { width: 100%; max-width: 1100px; }
+    h1 { margin: 0 0 6px; font-size: 2.2rem; letter-spacing: 0.03em; }
+    .subtitle { margin: 0 0 24px; color: var(--muted); font-size: 0.95rem; }
+    .card {
+      background: linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(2, 6, 23, 0.96));
+      border-radius: var(--radius-lg);
+      padding: 18px 18px 16px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      backdrop-filter: blur(18px);
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .card-title { font-size: 1.05rem; font-weight: 600; }
+    .pill {
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      white-space: nowrap;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 6px;
+      align-items: flex-end;
+    }
+    label { font-size: 0.85rem; color: var(--muted); display: block; margin-bottom: 4px; }
+    input[type="date"], select {
+      background: #020617;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.45);
+      padding: 7px 10px;
+      color: var(--text);
+      font-size: 0.9rem;
+      outline: none;
+      height: 38px;             
+      padding: 0 10px;           
+      line-height: 38px;        
+      min-width: 200px;
+    }
+    input[type="date"]:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.3);
+    }
+    button {
+      border-radius: 999px;
+      border: none;
+      padding: 8px 18px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      background: radial-gradient(circle at top left, #22d3ee, #2563eb);
+      color: #f9fafb;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 12px 30px rgba(37, 99, 235, 0.6);
+    }
+    button:disabled { opacity: 0.5; cursor: default; box-shadow: none; }
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      border: 2px solid rgba(248, 250, 252, 0.25);
+      border-top-color: #e5e7eb;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .status { font-size: 0.8rem; color: var(--muted); margin-left: 6px; }
+    .status.error { color: var(--danger); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 12px;
+      margin-top: 6px;
+    }
+    .metric {
+      padding: 10px 11px;
+      border-radius: 14px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(30, 64, 175, 0.8);
+    }
+    .metric-label { font-size: 0.78rem; color: var(--muted); margin-bottom: 4px; }
+    .metric-value { font-size: 1.05rem; font-weight: 600; }
+    .two-column {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr);
+      gap: 14px;
+      margin-top: 14px;
+    }
+    .left-column { display: flex; flex-direction: column; gap: 14px; }
+    @media (max-width: 900px) { .two-column { grid-template-columns: minmax(0, 1fr); } }
+    .ai-plan-body {
+      font-size: 0.9rem;
+      white-space: pre-wrap;
+      line-height: 1.55;
+      max-height: 400px;
+      overflow-y: auto;
+      padding-right: 6px;
+    }
+    .ai-section-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-top: 12px;
+      margin-bottom: 4px;
+      color: var(--accent);
+      border-bottom: 1px solid rgba(56, 189, 248, 0.25);
+      padding-bottom: 2px;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+    th, td {
+      padding: 6px 6px;
+      text-align: left;
+      border-bottom: 1px solid rgba(30, 64, 175, 0.7);
+    }
+    th { font-weight: 600; color: var(--muted); white-space: nowrap; }
+    tbody tr:nth-child(even) { background: rgba(15, 23, 42, 0.7); }
+    .tag-pill {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      margin-right: 4px;
+      margin-bottom: 4px;
+      border: 1px solid rgba(148, 163, 184, 0.55);
+      color: var(--muted);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <header style="margin-bottom:18px;">
+      <h1>PerfectHealth.ai</h1>
+      <p class="subtitle" id="subtitle">
+        Pick a user + as-of date to fetch Oura-style insights (7-day window vs 30-day baseline).
+      </p>
+    </header>
+
+    <!-- Controls -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Controls</div>
+        <span class="pill" id="as-of-pill">As of: –</span>
+      </div>
+
+      <div class="controls">
+        <div>
+          <label for="user-select">User</label>
+          <select id="user-select">
+            <option value="">Loading users...</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="date-input">As-of date (data up to this day)</label>
+          <input type="date" id="date-input" />
+        </div>
+
+        <div>
+          <button id="fetch-btn">
+            <span id="btn-spinner" class="spinner" style="display:none;"></span>
+            <span id="btn-text">Fetch insights</span>
+          </button>
+        </div>
+
+        <div class="status" id="status-text">Idle</div>
+      </div>
+    </div>
+
+    <!-- AI – Body & Reasoning full-width -->
+    <section class="card" style="margin-top:14px;">
+      <div class="card-header">
+        <div class="card-title">AI – Body & Reasoning</div>
+        <span class="pill" id="condition-pill">Condition: –</span>
+      </div>
+
+      <div id="ai-condition-output" class="ai-plan-body">
+        No AI insights yet. Fetch insights to generate them.
+      </div>
+    </section>
+
+    <!-- Two-column: left stack (Snapshot + Improvement) and right (AI Day Plan) -->
+    <div class="two-column">
+      <div class="left-column">
+        <!-- Snapshot -->
+        <section class="card" id="snapshot-card">
+          <div class="card-header">
+            <div class="card-title">Current Window Snapshot</div>
+            <span class="pill" id="current-day-pill">Latest day: –</span>
+          </div>
+
+          <div class="grid" id="current-stats"></div>
+
+          <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+            <span class="tag-pill" id="baseline-pill">30d baseline: –</span>
+            <span class="tag-pill" id="window-stats-pill">Window avg: –</span>
+          </div>
+        </section>
+
+        <!-- Estimated Improvement -->
+        <section class="card" id="improvement-wrapper" style="display:none;">
+          <div class="card-header">
+            <div class="card-title">Estimated Improvement</div>
+            <span class="pill" id="improvement-days">–</span>
+          </div>
+          <div style="font-size:0.8rem; color:var(--muted); margin-bottom:6px;">
+            If you follow today’s recommendations, this is your expected recovery window:
+          </div>
+          <div id="improvement-rationale" style="font-size:0.9rem; line-height:1.55;"></div>
+        </section>
+      </div>
+
+      <!-- AI Day Plan -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title">AI – Day Plan</div>
+        </div>
+
+        <div id="ai-plan-output" class="ai-plan-body">
+          No plan yet. Fetch insights to see today’s plan.
+        </div>
+      </section>
+    </div>
+
+    <!-- Window daily table -->
+    <section class="card" style="margin-top:18px;">
+      <div class="card-header">
+        <div class="card-title" id="table-title">Window detail</div>
+        <span class="pill">Sleep / readiness / cardio</span>
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table id="recent-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Sleep score</th>
+              <th>Readiness</th>
+              <th>Sleep (h)</th>
+              <th>Deep (h)</th>
+              <th>REM (h)</th>
+              <th>HRV (ms)</th>
+              <th>Avg sleep HR</th>
+              <th>Temp dev (°C)</th>
+              <th>Steps</th>
+              <th>SpO₂ (%)</th>
+              <th>VO₂ max</th>
+            </tr>
+          </thead>
+          <tbody id="recent-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const API_BASE = "https://rxdi8ylow0.execute-api.us-east-2.amazonaws.com";
+
+    function setLoading(isLoading, statusText) {
+      const btn = document.getElementById("fetch-btn");
+      const spinner = document.getElementById("btn-spinner");
+      const btnText = document.getElementById("btn-text");
+      const status = document.getElementById("status-text");
+
+      btn.disabled = isLoading;
+      spinner.style.display = isLoading ? "inline-block" : "none";
+      btnText.textContent = isLoading ? "Loading..." : "Fetch insights";
+      status.textContent = statusText || (isLoading ? "Fetching insights..." : "Idle");
+      status.classList.toggle("error", false);
+    }
+
+    function setErrorStatus(msg) {
+      const status = document.getElementById("status-text");
+      status.textContent = msg;
+      status.classList.add("error");
+    }
+
+    function fmt(num, decimals = 1) {
+      if (num === null || num === undefined || isNaN(num)) return "–";
+      const factor = Math.pow(10, decimals);
+      return (Math.round(num * factor) / factor).toFixed(decimals);
+    }
+
+    function secToHours(sec, decimals = 2) {
+      if (sec === null || sec === undefined || isNaN(sec)) return null;
+      return (Number(sec) / 3600);
+    }
+
+    function renderSnapshot(asOf, windowDaily, baselineStats, windowStats) {
+      document.getElementById("as-of-pill").textContent = "As of: " + (asOf || "–");
+
+      const container = document.getElementById("current-stats");
+      const dayPill = document.getElementById("current-day-pill");
+      container.innerHTML = "";
+
+      if (!Array.isArray(windowDaily) || windowDaily.length === 0) {
+        dayPill.textContent = "Latest day: –";
+        container.innerHTML = "<div class='metric'><div class='metric-label'>No data</div><div class='metric-value'>–</div></div>";
+        return;
+      }
+
+      const latest = windowDaily[windowDaily.length - 1];
+      dayPill.textContent = "Latest day: " + (latest.date || "–");
+
+      const sleepH = secToHours(latest.sleep_total_duration_sec);
+      const deepH = secToHours(latest.sleep_deep_duration_sec);
+      const remH = secToHours(latest.sleep_rem_duration_sec);
+
+      const items = [
+        { label: "Sleep score", value: fmt(latest.sleep_score, 0) },
+        { label: "Readiness score", value: fmt(latest.readiness_score, 0) },
+        { label: "Sleep (h)", value: fmt(sleepH, 2) },
+        { label: "HRV (ms)", value: fmt(latest.average_hrv, 0) },
+        { label: "Avg sleep HR (bpm)", value: fmt(latest.average_heart_rate, 0) },
+        { label: "Temp dev (°C)", value: fmt(latest.body_temperature_deviation, 2) },
+      ];
+
+      items.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "metric";
+        div.innerHTML = `
+          <div class="metric-label">${item.label}</div>
+          <div class="metric-value">${item.value}</div>
+        `;
+        container.appendChild(div);
+      });
+
+      // Baseline/Window pills
+      const baselinePill = document.getElementById("baseline-pill");
+      const windowPill = document.getElementById("window-stats-pill");
+
+      if (baselineStats) {
+        baselinePill.textContent =
+          `30d baseline: Sleep ${fmt(baselineStats.avg_sleep_score,0)} | Ready ${fmt(baselineStats.avg_readiness_score,0)} | HRV ${fmt(baselineStats.avg_hrv,0)}`;
+      } else baselinePill.textContent = "30d baseline: –";
+
+      if (windowStats) {
+        windowPill.textContent =
+          `Window avg: Sleep ${fmt(windowStats.avg_sleep_score,0)} | Ready ${fmt(windowStats.avg_readiness_score,0)} | HRV ${fmt(windowStats.avg_hrv,0)}`;
+      } else windowPill.textContent = "Window avg: –";
+    }
+
+    function renderWindowTable(windowDaily, windowDays, windowDates) {
+      const tbody = document.getElementById("recent-tbody");
+      tbody.innerHTML = "";
+
+      const title = document.getElementById("table-title");
+      const daysLabel = windowDays ? `${windowDays} day` + (Number(windowDays) === 1 ? "" : "s") : "Window";
+      title.textContent = `${daysLabel} detail`;
+
+      if (!Array.isArray(windowDaily) || windowDaily.length === 0) {
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 12;
+        td.textContent = "No window data.";
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return;
+      }
+
+      windowDaily.forEach(row => {
+        const tr = document.createElement("tr");
+        const sleepH = secToHours(row.sleep_total_duration_sec);
+        const deepH = secToHours(row.sleep_deep_duration_sec);
+        const remH = secToHours(row.sleep_rem_duration_sec);
+
+        tr.innerHTML = `
+          <td>${row.date || "–"}</td>
+          <td>${fmt(row.sleep_score, 0)}</td>
+          <td>${fmt(row.readiness_score, 0)}</td>
+          <td>${fmt(sleepH, 2)}</td>
+          <td>${fmt(deepH, 2)}</td>
+          <td>${fmt(remH, 2)}</td>
+          <td>${fmt(row.average_hrv, 0)}</td>
+          <td>${fmt(row.average_heart_rate, 0)}</td>
+          <td>${fmt(row.body_temperature_deviation, 2)}</td>
+          <td>${fmt(row.steps, 0)}</td>
+          <td>${fmt(row.spo2_average, 1)}</td>
+          <td>${fmt(row.vo2_max, 1)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderAiPlanFromRaw(aiPlanRaw) {
+      const conditionPill = document.getElementById("condition-pill");
+      const conditionBox = document.getElementById("ai-condition-output");
+      const planBox = document.getElementById("ai-plan-output");
+
+      const improvementWrapper = document.getElementById("improvement-wrapper");
+      const improvementDaysEl = document.getElementById("improvement-days");
+      const improvementRationaleEl = document.getElementById("improvement-rationale");
+
+      // Reset
+      conditionPill.textContent = "Condition: –";
+      conditionBox.textContent = "No AI insights yet. Fetch insights to generate them.";
+      planBox.textContent = "No plan yet. Fetch insights to see today’s plan.";
+      improvementWrapper.style.display = "none";
+      improvementDaysEl.textContent = "–";
+      improvementRationaleEl.textContent = "";
+
+      if (!aiPlanRaw) return;
+
+      let planObj = null;
+      const rawText = String(aiPlanRaw).trim().replace(/```json|```/g, "").trim();
+
+      try {
+        planObj = JSON.parse(rawText);
+      } catch (e) {
+        // fall back: show raw as text
+        conditionPill.textContent = "Condition: Text only";
+        conditionBox.innerHTML = `
+          <div class="ai-section-title">Body Condition</div>
+          <div>AI output wasn’t valid JSON. Showing raw output in Day Plan.</div>
+        `;
+        const formatted = rawText.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>").replace(/\n/g, "<br>");
+        planBox.innerHTML = `<div class="ai-section-title">Day plan</div><div>${formatted}</div>`;
+        return;
+      }
+
+      const label = planObj.condition_label || "Unknown";
+      conditionPill.textContent = "Condition: " + label;
+
+      // Left: reasons/summary
+      let leftHtml = `<div class="ai-section-title">Body Condition</div>`;
+      const reasons = Array.isArray(planObj.reasons) ? planObj.reasons : [];
+      if (reasons.length > 0) {
+        leftHtml += "<ul>";
+        reasons.forEach(r => {
+          leftHtml += `<li>${r.factor ? `<strong>${r.factor}:</strong> ` : ""}${r.evidence || ""}</li>`;
+        });
+        leftHtml += "</ul>";
+      } else if (planObj.condition_summary) {
+        leftHtml += `<div>${planObj.condition_summary}</div>`;
+      } else {
+        leftHtml += `<div>No detailed reasons available.</div>`;
+      }
+      conditionBox.innerHTML = leftHtml;
+
+      // Improvement card
+      if (planObj.estimated_improvement_days || planObj.improvement_rationale) {
+        improvementWrapper.style.display = "block";
+        improvementDaysEl.textContent = planObj.estimated_improvement_days ? `${planObj.estimated_improvement_days} Days` : "–";
+        improvementRationaleEl.textContent = planObj.improvement_rationale || "–";
+      }
+
+      // Right: day plan
+      let planHtml = `<div class="ai-section-title">Day plan</div>`;
+      const tp = (planObj.today_plan || "").trim();
+      if (tp) {
+        const formatted = tp.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>").replace(/\n/g, "<br>");
+        planHtml += `<div>${formatted}</div>`;
+      } else {
+        planHtml += `<div>No specific plan provided for today.</div>`;
+      }
+      planBox.innerHTML = planHtml;
+    }
+
+
+    async function fetchUsersAndSetDateRange() {
+      const userSelect = document.getElementById("user-select");
+      const dateInput = document.getElementById("date-input");
+
+      const res = await fetch(`${API_BASE}/insights?list_users=1`);
+      if (!res.ok) throw new Error(`list_users HTTP ${res.status}`);
+      const data = await res.json();
+      const users = data.users || {};
+
+      const entries = Object.entries(users);
+      if (entries.length === 0) {
+        userSelect.innerHTML = `<option value="">No users found</option>`;
+        return;
+      }
+
+      // populate dropdown
+      userSelect.innerHTML = "";
+      entries.sort((a, b) => a[0].localeCompare(b[0]));
+      entries.forEach(([uid, info]) => {
+        const opt = document.createElement("option");
+        opt.value = uid;
+        opt.textContent = uid;
+        userSelect.appendChild(opt);
+      });
+
+      // set global min/max across users
+      let minD = entries[0][1].min_date;
+      let maxD = entries[0][1].max_date;
+      entries.forEach(([_, info]) => {
+        if (info.min_date < minD) minD = info.min_date;
+        if (info.max_date > maxD) maxD = info.max_date;
+      });
+
+      dateInput.min = minD;
+      dateInput.max = maxD;
+      dateInput.value = maxD;
+
+      document.getElementById("range-pill").textContent = `Data range: ${minD} → ${maxD}`;
+    }
+
+    async function fetchInsights() {
+      try {
+        setLoading(true);
+
+        const userId = document.getElementById("user-select").value;
+        const dateVal = document.getElementById("date-input").value;
+
+        if (!userId) {
+          setErrorStatus("Pick a user");
+          setLoading(false);
+          return;
+        }
+        if (!dateVal) {
+          setErrorStatus("Pick a date");
+          setLoading(false);
+          return;
+        }
+
+        const url = `${API_BASE}/insights?user_id=${encodeURIComponent(userId)}&date=${encodeURIComponent(dateVal)}`;
+        const res = await fetch(url);
+
+        if (!res.ok) {
+          setErrorStatus(`HTTP ${res.status}`);
+          setLoading(false);
+          return;
+        }
+
+        const data = await res.json();
+
+        renderSnapshot(data.as_of, data.window_daily, data.baseline_stats, data.window_stats);
+        renderWindowTable(data.window_daily, data.window_days, data.window_dates);
+        renderAiPlanFromRaw(data.ai_plan_raw);
+
+        setLoading(false, "Loaded successfully");
+      } catch (err) {
+        console.error(err);
+        setErrorStatus("Error fetching insights (see console)");
+        setLoading(false);
+      }
+    }
+
+    document.getElementById("fetch-btn").addEventListener("click", fetchInsights);
+
+    (async function init() {
+      try {
+        setLoading(true, "Loading users...");
+        await fetchUsersAndSetDateRange();
+        setLoading(false, "Ready");
+      } catch (err) {
+        console.error(err);
+        setErrorStatus("Failed to load users (see console)");
+        setLoading(false);
+      }
+    })();
+  </script>
+</body>
+</html>
