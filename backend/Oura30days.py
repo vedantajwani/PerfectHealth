@@ -197,6 +197,15 @@ def build_daily_series(rows, limit=None):
             "body_temperature_deviation": r.get("body_temperature_deviation"),
             "spo2_average": r.get("spo2_average"),
             "vo2_max": r.get("vo2_max"),
+            "activity_type": r.get("activity_type"),
+            "activity_score": r.get("activity_score"),
+            "activity_steps": r.get("activity_steps"),
+            "activity_total_calories": r.get("activity_total_calories"),
+            "activity_active_calories": r.get("activity_active_calories"),
+            "activity_high_activity_time_sec": r.get("activity_high_activity_time_sec"),
+            "activity_medium_activity_time_sec": r.get("activity_medium_activity_time_sec"),
+            "activity_low_activity_time_sec": r.get("activity_low_activity_time_sec"),
+
         })
 
     if limit is not None:
@@ -238,6 +247,47 @@ You are given:
 Important data quality rule:
 - If any value is clearly implausible (e.g., extreme temperature deviation, impossible sleep durations, etc.),
   mention it as a sensor/data anomaly and do NOT use it as evidence of physiological strain.
+- Don't use symbols like ">", "<" , etc. Talk in simple language, like you're talking to a {age} year old {gender}.
+
+ACTIVITY & TRAINING RULES (CRITICAL):
+
+- Each window_daily row may include:
+  activity_type, activity_score, activity_steps,
+  activity_active_calories,
+  activity_high_activity_time_sec,
+  activity_medium_activity_time_sec,
+  activity_low_activity_time_sec.
+
+- When suggesting today's workout:
+  • Choose ONLY an activity_type seen in window_daily.
+  • Match intensity using BOTH recovery metrics AND recent activity load.
+
+INTENSITY GUIDELINES:
+- HIGH / HARD:
+    readiness_score ≥ 80 AND sleep_score ≥ 80
+    AND recent activity_high_activity_time_sec is present (>30 min) without recovery drop
+- MODERATE:
+    readiness_score 65–79 OR sleep_score 65–79
+    OR moderate activity volume dominates (medium > high)
+- EASY / REST:
+    readiness_score < 65 OR sleep_score < 65
+    OR HRV below window average
+    OR prior day had very high active calories or high_activity_time_sec
+
+ACTIVITY MATCHING:
+- If recommending HARD:
+    pick an activity_type historically associated with
+    higher activity_score, high_activity_time_sec, or high active calories.
+- If recommending EASY:
+    pick an activity_type historically associated with
+    low_activity_time_sec or recovery-focused days.
+- If no activity_type exists, recommend rest or generic light activity.
+
+EVIDENCE REQUIREMENT:
+- Always cite:
+  • latest day metrics
+  • AND at least one activity metric
+    (e.g., activity_score, high_activity_time_sec, active_calories)
 
 Your job:
 1) Assign EXACTLY ONE label:
@@ -249,7 +299,7 @@ Use readiness_score + sleep_score + HRV + sleep duration primarily.
 
 2) Reasons (2–4 bullets) with specific numbers from window_daily and/or window_stats.
 
-3) What to do today: practical plan (training intensity, sleep target, recovery behaviors).
+3) What to do today: practical plan (training intensity(suggest to rest or suggest an activity from their history which would match the intensity required using past data), sleep target, recovery behaviors).
 
 4) Timeline: estimate days to reach at least "AboveAverage" if they follow the plan.
 
@@ -272,7 +322,7 @@ Return VALID JSON only (no markdown):
 def call_claude(prompt):
     body = json.dumps({
         "anthropic_version": "bedrock-2023-05-31",
-        "max_tokens": 900,
+        "max_tokens": 1200,
         "temperature": 0.4,
         "messages": [
             {"role": "user", "content": [{"type": "text", "text": prompt}]}
