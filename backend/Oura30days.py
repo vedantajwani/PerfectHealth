@@ -15,7 +15,6 @@ MODEL_ID = os.environ.get(
     "arn:aws:bedrock:us-east-2:406460547315:inference-profile/global.anthropic.claude-sonnet-4-5-20250929-v1:0"
 )
 
-# Recommended: 7-day "current state" vs 30-day baseline
 WINDOW_DAYS = int(os.environ.get("WINDOW_DAYS", "7"))
 
 CORS_HEADERS = {
@@ -295,6 +294,7 @@ Your job:
   - "AboveAverage"
   - "Average"
   - "BelowAverage"
+
 Use readiness_score + sleep_score + HRV + sleep duration primarily.
 
 2) Reasons (2–4 bullets) with specific numbers from window_daily and/or window_stats.
@@ -354,7 +354,6 @@ def strip_json_fences(s):
 def lambda_handler(event, context):
     params = event.get("queryStringParameters") or {}
 
-    # CORS preflight
     method = (event.get("requestContext", {}).get("http", {}).get("method")
               or event.get("httpMethod") or "GET")
     if method == "OPTIONS":

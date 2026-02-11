@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PerfectHealth.ai – Oura Insights</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #050816;
+      --bg-card: #0f172a;
+      --bg-card-soft: #020617;
+      --accent: #38bdf8;
+      --accent-soft: rgba(56, 189, 248, 0.15);
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --danger: #f97373;
+      --radius-lg: 18px;
+      --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.85);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #0f172a 0, #020617 50%, #000 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 32px 16px;
+    }
+
+    .app { width: 100%; max-width: 1100px; }
+
+    h1 { margin: 0 0 6px; font-size: 2.2rem; letter-spacing: 0.03em; }
+
+    .subtitle { margin: 0 0 24px; color: var(--muted); font-size: 0.95rem; }
+
+    .card {
+      background: linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(2, 6, 23, 0.96));
+      border-radius: var(--radius-lg);
+      padding: 18px 18px 16px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      backdrop-filter: blur(18px);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .card-title { font-size: 1.05rem; font-weight: 600; }
+
+    .pill {
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+      align-items: center;
+    }
+
+    label {
+      font-size: 0.85rem;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    input[type="date"] {
+      background: #020617;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.45);
+      padding: 7px 10px;
+      color: var(--text);
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    input[type="date"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.3);
+    }
+
+    button {
+      border-radius: 999px;
+      border: none;
+      padding: 8px 18px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      background: radial-gradient(circle at top left, #22d3ee, #2563eb);
+      color: #f9fafb;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 12px 30px rgba(37, 99, 235, 0.6);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: default;
+      box-shadow: none;
+    }
+
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      border: 2px solid rgba(248, 250, 252, 0.25);
+      border-top-color: #e5e7eb;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .status { font-size: 0.8rem; color: var(--muted); margin-left: 6px; }
+    .status.error { color: var(--danger); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 12px;
+      margin-top: 6px;
+    }
+
+    .metric {
+      padding: 10px 11px;
+      border-radius: 14px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(30, 64, 175, 0.8);
+    }
+
+    .metric-label { font-size: 0.78rem; color: var(--muted); margin-bottom: 4px; }
+    .metric-value { font-size: 1.05rem; font-weight: 600; }
+
+    .two-column {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr);
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .left-column { display: flex; flex-direction: column; gap: 14px; }
+
+    @media (max-width: 900px) {
+      .two-column { grid-template-columns: minmax(0, 1fr); }
+    }
+
+    .ai-plan-body {
+      font-size: 0.9rem;
+      white-space: pre-wrap;
+      line-height: 1.55;
+      max-height: 400px;
+      overflow-y: auto;
+      padding-right: 6px;
+    }
+
+    .ai-section-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-top: 12px;
+      margin-bottom: 4px;
+      color: var(--accent);
+      border-bottom: 1px solid rgba(56, 189, 248, 0.25);
+      padding-bottom: 2px;
+    }
+
+    .ai-plan-body strong { color: #f8fafc; font-weight: 600; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+
+    th, td {
+      padding: 6px 6px;
+      text-align: left;
+      border-bottom: 1px solid rgba(30, 64, 175, 0.7);
+    }
+
+    th { font-weight: 600; color: var(--muted); white-space: nowrap; }
+    tbody tr:nth-child(even) { background: rgba(15, 23, 42, 0.7); }
+
+    .badge {
+      display: inline-flex;
+      border-radius: 999px;
+      padding: 1px 7px;
+      font-size: 0.7rem;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      color: var(--muted);
+    }
+
+    .tag-true { border-color: rgba(34, 197, 94, 0.6); color: #bbf7d0; }
+    .tag-false { border-color: rgba(148, 163, 184, 0.35); color: #9ca3af; }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <header style="margin-bottom:18px;">
+      <h1>PerfectHealth.ai</h1>
+      <p class="subtitle">
+        Pick an <strong>as-of date</strong> to generate insights from your current Data
+      </p>
+    </header>
+
+    <!-- Controls -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Controls</div>
+        <span class="pill" id="as-of-pill">As of: –</span>
+      </div>
+
+      <div class="controls">
+        <div>
+          <label for="date-input">As-of date (data up to this day)</label>
+          <input type="date" id="date-input" />
+        </div>
+
+        <div>
+          <div style="height: 1.2em;"></div>
+          <button id="fetch-btn">
+            <span id="btn-spinner" class="spinner" style="display:none;"></span>
+            <span id="btn-text">Fetch insights</span>
+          </button>
+        </div>
+
+        <div class="status" id="status-text">Idle</div>
+      </div>
+    </div>
+
+    <!-- AI – Body & Reasoning full-width -->
+    <section class="card" style="margin-top:14px;">
+      <div class="card-header">
+        <div class="card-title">AI – Body & Reasoning</div>
+        <span class="pill" id="condition-pill">Condition: –</span>
+      </div>
+
+      <div id="ai-condition-output" class="ai-plan-body">
+        No AI insights yet. Fetch insights to generate them.
+      </div>
+    </section>
+
+    <!-- Two-column: left stack (Snapshot + Improvement) and right (AI Day Plan) -->
+    <div class="two-column">
+      <div class="left-column">
+        <!-- Left top: Snapshot -->
+        <section class="card" id="snapshot-card">
+          <div class="card-header">
+            <div class="card-title">Today’s Snapshot (Latest day in window)</div>
+            <span class="pill" id="current-day-pill">Latest data: –</span>
+          </div>
+
+          <div class="grid" id="current-stats"></div>
+        </section>
+
+        <!-- Left bottom: Estimated Improvement -->
+        <section class="card" id="improvement-wrapper" style="display:none;">
+          <div class="card-header">
+            <div class="card-title">Estimated Improvement</div>
+            <span class="pill" id="improvement-days">–</span>
+          </div>
+          <div style="font-size:0.8rem; color:var(--muted); margin-bottom:6px;">
+            If you follow today’s recommendations, this is your expected recovery window:
+          </div>
+          <div id="improvement-rationale" style="font-size:0.9rem; line-height:1.55;"></div>
+        </section>
+      </div>
+
+      <!-- Right: AI Day Plan -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title">AI – Day Plan</div>
+        </div>
+
+        <div id="ai-plan-output" class="ai-plan-body">
+          No plan yet. Fetch insights to see today’s plan.
+        </div>
+      </section>
+    </div>
+
+    <!-- Recent daily table -->
+    <section class="card" style="margin-top:18px;">
+      <div class="card-header">
+        <div class="card-title">Recent window detail (from your current schema)</div>
+        <span class="pill">Sleep / readiness / SpO₂ / stress / workouts</span>
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table id="recent-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Sleep</th>
+              <th>Readiness</th>
+              <th>SpO₂</th>
+              <th>BDI</th>
+              <th>Temp dev</th>
+              <th>Stress high (min)</th>
+              <th>Recovery high (min)</th>
+              <th>Workouts</th>
+              <th>Workout cals</th>
+              <th>Tags</th>
+              <th>Cardio age</th>
+            </tr>
+          </thead>
+          <tbody id="recent-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    
+    const API_BASE = "https://8evn7eac6k.execute-api.us-west-2.amazonaws.com";
+    const PATH = "/insights";
+
+    // Since your dataset goes into 2026, don't hard-limit it.
+    const MIN_DATE = "2024-12-01";
+    const MAX_DATE = "2026-1-26";
+
+    function setLoading(isLoading, statusText) {
+      const btn = document.getElementById("fetch-btn");
+      const spinner = document.getElementById("btn-spinner");
+      const btnText = document.getElementById("btn-text");
+      const status = document.getElementById("status-text");
+
+      btn.disabled = isLoading;
+      spinner.style.display = isLoading ? "inline-block" : "none";
+      btnText.textContent = isLoading ? "Loading..." : "Fetch insights";
+      status.textContent = statusText || (isLoading ? "Fetching insights..." : "Idle");
+      status.classList.toggle("error", false);
+    }
+
+    function setErrorStatus(msg) {
+      const status = document.getElementById("status-text");
+      status.textContent = msg;
+      status.classList.add("error");
+    }
+
+    function fmt(num, decimals = 1) {
+      if (num === null || num === undefined || isNaN(num)) return "–";
+      const factor = Math.pow(10, decimals);
+      return (Math.round(num * factor) / factor).toFixed(decimals);
+    }
+
+    function sumWorkoutCalories(workouts) {
+      if (!Array.isArray(workouts)) return null;
+      let total = 0;
+      let found = false;
+      for (const w of workouts) {
+        if (w && typeof w === "object" && typeof w.calories === "number") {
+          total += w.calories;
+          found = true;
+        }
+      }
+      return found ? total : null;
+    }
+
+    function renderCurrentStats(asOf, recentDaily) {
+      document.getElementById("as-of-pill").textContent = "As of: " + (asOf || "–");
+
+      const container = document.getElementById("current-stats");
+      const pill = document.getElementById("current-day-pill");
+      container.innerHTML = "";
+
+      if (!Array.isArray(recentDaily) || recentDaily.length === 0) {
+        pill.textContent = "Latest data: –";
+        container.innerHTML =
+          "<div class='metric'><div class='metric-label'>No data</div><div class='metric-value'>–</div></div>";
+        return;
+      }
+
+      const latest = recentDaily[recentDaily.length - 1];
+      const latestDate = latest.date || "–";
+      pill.textContent = "Latest data: " + latestDate;
+
+      const stressMin = (typeof latest.stress_high_sec === "number") ? (latest.stress_high_sec / 60.0) : null;
+      const recMin = (typeof latest.recovery_high_sec === "number") ? (latest.recovery_high_sec / 60.0) : null;
+      const workoutsCount = Array.isArray(latest.workouts) ? latest.workouts.length : 0;
+      const workoutCals = sumWorkoutCalories(latest.workouts);
+
+      const items = [
+        { label: "Sleep score", value: fmt(latest.sleep_score, 0) },
+        { label: "Readiness score", value: fmt(latest.readiness_score, 0) },
+        { label: "SpO₂ avg (%)", value: fmt(latest.spo2_avg_pct, 1) },
+        { label: "Breathing index (BDI)", value: fmt(latest.bdi, 1) },
+        { label: "Temp deviation (°C)", value: fmt(latest.temp_dev_c, 2) },
+        { label: "Stress high (min)", value: fmt(stressMin, 0) },
+        { label: "Recovery high (min)", value: fmt(recMin, 0) },
+        { label: "Workouts (count)", value: String(workoutsCount) },
+        { label: "Workout calories", value: fmt(workoutCals, 0) }
+      ];
+
+      items.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "metric";
+        div.innerHTML = `
+          <div class="metric-label">${item.label}</div>
+          <div class="metric-value">${item.value}</div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function renderRecentDailyTable(recentDaily) {
+      const tbody = document.getElementById("recent-tbody");
+      tbody.innerHTML = "";
+
+      if (!Array.isArray(recentDaily) || recentDaily.length === 0) {
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 12;
+        td.textContent = "No recent daily data.";
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return;
+      }
+
+      recentDaily.forEach(row => {
+        const workoutsCount = Array.isArray(row.workouts) ? row.workouts.length : 0;
+        const workoutCals = sumWorkoutCalories(row.workouts);
+
+        const stressMin = (typeof row.stress_high_sec === "number") ? (row.stress_high_sec / 60.0) : null;
+        const recMin = (typeof row.recovery_high_sec === "number") ? (row.recovery_high_sec / 60.0) : null;
+
+        const tagsCount = Array.isArray(row.enhanced_tags) ? row.enhanced_tags.length : 0;
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${row.date || "–"}</td>
+          <td>${fmt(row.sleep_score, 0)}</td>
+          <td>${fmt(row.readiness_score, 0)}</td>
+          <td>${fmt(row.spo2_avg_pct, 1)}</td>
+          <td>${fmt(row.bdi, 1)}</td>
+          <td>${fmt(row.temp_dev_c, 2)}</td>
+          <td>${fmt(stressMin, 0)}</td>
+          <td>${fmt(recMin, 0)}</td>
+          <td>${workoutsCount}</td>
+          <td>${fmt(workoutCals, 0)}</td>
+          <td>${tagsCount}</td>
+          <td>${fmt(row.cardiovascular_age, 0)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderAiPlan(aiPlan) {
+      const conditionPill = document.getElementById("condition-pill");
+      const conditionBox = document.getElementById("ai-condition-output");
+      const planBox = document.getElementById("ai-plan-output");
+
+      const improvementWrapper = document.getElementById("improvement-wrapper");
+      const improvementDaysEl = document.getElementById("improvement-days");
+      const improvementRationaleEl = document.getElementById("improvement-rationale");
+
+      // reset
+      improvementWrapper.style.display = "none";
+      improvementDaysEl.textContent = "–";
+      improvementRationaleEl.textContent = "";
+
+      conditionPill.textContent = "Condition: –";
+      conditionBox.textContent = "No AI insights yet. Fetch insights to generate them.";
+      planBox.textContent = "No plan yet. Fetch insights to see today’s plan.";
+
+      if (!aiPlan || typeof aiPlan !== "object") return;
+
+      // If the model returned structured JSON, it’ll be right here
+      const planObj = aiPlan;
+
+      const label = planObj.condition_label || "Unknown";
+      const summary = planObj.condition_summary || "";
+      const reasons = Array.isArray(planObj.reasons) ? planObj.reasons : [];
+      const todayPlan = planObj.today_plan || "";
+
+      conditionPill.textContent = "Condition: " + label;
+
+      // Body & reasoning
+      let leftHtml = "";
+      leftHtml += `<div class="ai-section-title">Body Condition</div>`;
+      if (summary) leftHtml += `<div>${summary}</div>`;
+
+      leftHtml += `<div class="ai-section-title">Reasons</div>`;
+      if (reasons.length > 0) {
+        leftHtml += "<ul>";
+        reasons.forEach(r => {
+          leftHtml += `<li>${r.factor ? `<strong>${r.factor}:</strong> ` : ""}${r.evidence || ""}</li>`;
+        });
+        leftHtml += "</ul>";
+      } else {
+        leftHtml += `<div>No detailed reasons returned.</div>`;
+      }
+      conditionBox.innerHTML = leftHtml;
+
+      // Improvement card
+      const estDays = planObj.estimated_improvement_days;
+      const rationale = planObj.improvement_rationale;
+      if (estDays || rationale) {
+        improvementWrapper.style.display = "block";
+        improvementDaysEl.textContent = estDays ? `${estDays} Days` : "–";
+        improvementRationaleEl.textContent = rationale || "No improvement rationale available.";
+      }
+
+      // Day plan
+      let planHtml = `<div class="ai-section-title">Day plan</div>`;
+      if (todayPlan && String(todayPlan).trim()) {
+        const formattedPlan = String(todayPlan)
+          .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+          .replace(/\n/g, "<br>");
+        planHtml += `<div>${formattedPlan}</div>`;
+      } else {
+        planHtml += `<div>No specific plan provided for today.</div>`;
+      }
+      planBox.innerHTML = planHtml;
+    }
+
+    async function fetchInsights() {
+      try {
+        setLoading(true);
+
+        const dateInputEl = document.getElementById("date-input");
+        const dateInput = dateInputEl.value;
+
+        if (!dateInput) {
+          setErrorStatus("Pick a date first");
+          setLoading(false);
+          return;
+        }
+
+        if (dateInput < MIN_DATE || dateInput > MAX_DATE) {
+          setErrorStatus(`Date must be between ${MIN_DATE} and ${MAX_DATE}`);
+          setLoading(false);
+          return;
+        }
+
+        const url = `${API_BASE}${PATH}?date=${encodeURIComponent(dateInput)}`;
+
+        const res = await fetch(url);
+        if (!res.ok) {
+          setErrorStatus(`HTTP ${res.status}`);
+          setLoading(false);
+          return;
+        }
+
+        const data = await res.json();
+
+        // Your Lambda returns:
+        // { as_of, window_days, baseline_stats, recent_stats, risk, recent_daily, ai_plan }
+        renderCurrentStats(data.as_of, data.recent_daily);
+        renderRecentDailyTable(data.recent_daily);
+        renderAiPlan(data.ai_plan);
+
+        setLoading(false, "Loaded successfully");
+      } catch (err) {
+        console.error("Error in fetchInsights:", err);
+        setErrorStatus("Error fetching insights (check console)");
+        setLoading(false);
+      }
+    }
+
+    document.getElementById("fetch-btn").addEventListener("click", fetchInsights);
+
+    (function init() {
+      const input = document.getElementById("date-input");
+      input.min = MIN_DATE;
+      input.max = MAX_DATE;
+
+      // Default: today (or max date)
+      const today = new Date().toISOString().slice(0, 10);
+      input.value = today;
+    })();
+  </script>
+</body>
+</html>
